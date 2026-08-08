@@ -1,0 +1,140 @@
+[
+  {
+    "id": "log_1786164690524_83ex",
+    "timestamp": "2026-08-08T04:51:30.524Z",
+    "type": "info",
+    "message": "Cleared platform session cookies for: youtube"
+  },
+  {
+    "id": "log_1786164687004_k8u4",
+    "timestamp": "2026-08-08T04:51:27.004Z",
+    "type": "info",
+    "message": "Updated platform session cookies for: youtube"
+  },
+  {
+    "id": "log_1786164444743_mcyd",
+    "timestamp": "2026-08-08T04:47:24.743Z",
+    "type": "error",
+    "message": "Download failed for: TikTok Creator Growth Challenge Explained — How Creators Are Earning $250 To $30,000 (Class 1)",
+    "details": "Exit code: 1"
+  },
+  {
+    "id": "log_1786164442337_88vb",
+    "timestamp": "2026-08-08T04:47:22.337Z",
+    "type": "info",
+    "message": "Started real yt-dlp process for: TikTok Creator Growth Challenge Explained — How Creators Are Earning $250 To $30,000 (Class 1)",
+    "details": "Format: bestvideo[height<=1080]+bestaudio/best[height<=1080]/best, Output: /app/applet/downloads/Zahid Iqbal  Zetomate - TikTok Creator Growth Challenge Explained  How Creators Are Earning 250 To 30000 (Class 1) [1080p].mp4"
+  },
+  {
+    "id": "log_1786164442336_n9nx",
+    "timestamp": "2026-08-08T04:47:22.336Z",
+    "type": "info",
+    "message": "Queued download: TikTok Creator Growth Challenge Explained — How Creators Are Earning $250 To $30,000 (Class 1)",
+    "details": "Format: MP4, Quality: 1080p"
+  },
+  {
+    "id": "log_1786163513194_fdzo",
+    "timestamp": "2026-08-08T04:31:53.194Z",
+    "type": "error",
+    "message": "Download failed for: TikTok Creator Growth Challenge Explained — How Creators Are Earning $250 To $30,000 (Class 1)",
+    "details": "Exit code: 1"
+  },
+  {
+    "id": "log_1786163511120_67kl",
+    "timestamp": "2026-08-08T04:31:51.120Z",
+    "type": "info",
+    "message": "Started real yt-dlp process for: TikTok Creator Growth Challenge Explained — How Creators Are Earning $250 To $30,000 (Class 1)",
+    "details": "Format: bestvideo[height<=240]+bestaudio/best[height<=240]/best, Output: /app/applet/downloads/Zahid Iqbal  Zetomate - TikTok Creator Growth Challenge Explained  How Creators Are Earning 250 To 30000 (Class 1) [240p].mp4"
+  },
+  {
+    "id": "log_1786163511119_hrt3",
+    "timestamp": "2026-08-08T04:31:51.119Z",
+    "type": "info",
+    "message": "Queued download: TikTok Creator Growth Challenge Explained — How Creators Are Earning $250 To $30,000 (Class 1)",
+    "details": "Format: MP4, Quality: 240p"
+  },
+  {
+    "id": "log_1786163301614_g35e",
+    "timestamp": "2026-08-08T04:28:21.614Z",
+    "type": "success",
+    "message": "Download completed successfully: Rick Astley Test",
+    "details": "Saved to /app/applet/downloads/Rick Astley - Rick Astley Test [360p].mp4"
+  },
+  {
+    "id": "log_1786163296037_j1w3",
+    "timestamp": "2026-08-08T04:28:16.037Z",
+    "type": "info",
+    "message": "Started real yt-dlp process for: Rick Astley Test",
+    "details": "Format: bestvideo[height<=360]+bestaudio/best[height<=360]/best, Output: /app/applet/downloads/Rick Astley - Rick Astley Test [360p].mp4"
+  },
+  {
+    "id": "log_1786163296037_tx99",
+    "timestamp": "2026-08-08T04:28:16.037Z",
+    "type": "info",
+    "message": "Queued download: Rick Astley Test",
+    "details": "Format: MP4, Quality: 360p"
+  },
+  {
+    "id": "log_1786161737840_wkdb",
+    "timestamp": "2026-08-08T04:02:17.840Z",
+    "type": "success",
+    "message": "Completed download: Aisi Fruit Home Videos Par Millions Views Aate Hain🔥",
+    "details": "Saved: Umair tiktok wala - Aisi Fruit Home Videos Par Millions Views Aate Hain [144p].mp4"
+  },
+  {
+    "id": "log_1786161736837_vu7f",
+    "timestamp": "2026-08-08T04:02:16.837Z",
+    "type": "info",
+    "message": "Started downloading: Aisi Fruit Home Videos Par Millions Views Aate Hain🔥",
+    "details": "Saving to /app/applet/downloads/Umair tiktok wala - Aisi Fruit Home Videos Par Millions Views Aate Hain [144p].mp4"
+  },
+  {
+    "id": "log_1786161736837_w7cx",
+    "timestamp": "2026-08-08T04:02:16.837Z",
+    "type": "info",
+    "message": "Queued download: Aisi Fruit Home Videos Par Millions Views Aate Hain🔥",
+    "details": "Format: MP4, Quality: 144p"
+  },
+  {
+    "id": "log_1786161705162_eym5",
+    "timestamp": "2026-08-08T04:01:45.162Z",
+    "type": "success",
+    "message": "Completed download: Aisi Fruit Home Videos Par Millions Views Aate Hain🔥",
+    "details": "Saved: Umair tiktok wala - Aisi Fruit Home Videos Par Millions Views Aate Hain [144p].mp4"
+  },
+  {
+    "id": "log_1786161704158_b30x",
+    "timestamp": "2026-08-08T04:01:44.158Z",
+    "type": "info",
+    "message": "Started downloading: Aisi Fruit Home Videos Par Millions Views Aate Hain🔥",
+    "details": "Saving to /app/applet/downloads/Umair tiktok wala - Aisi Fruit Home Videos Par Millions Views Aate Hain [144p].mp4"
+  },
+  {
+    "id": "log_1786161704158_s078",
+    "timestamp": "2026-08-08T04:01:44.158Z",
+    "type": "info",
+    "message": "Queued download: Aisi Fruit Home Videos Par Millions Views Aate Hain🔥",
+    "details": "Format: MP4, Quality: 144p"
+  },
+  {
+    "id": "log_1786161676302_dznk",
+    "timestamp": "2026-08-08T04:01:16.302Z",
+    "type": "success",
+    "message": "Completed download: Aisi Fruit Home Videos Par Millions Views Aate Hain🔥",
+    "details": "Saved: Umair tiktok wala - Aisi Fruit Home Videos Par Millions Views Aate Hain [240p].mp4"
+  },
+  {
+    "id": "log_1786161673546_n1rv",
+    "timestamp": "2026-08-08T04:01:13.546Z",
+    "type": "info",
+    "message": "Started downloading: Aisi Fruit Home Videos Par Millions Views Aate Hain🔥",
+    "details": "Saving to /app/applet/downloads/Umair tiktok wala - Aisi Fruit Home Videos Par Millions Views Aate Hain [240p].mp4"
+  },
+  {
+    "id": "log_1786161673546_1ydu",
+    "timestamp": "2026-08-08T04:01:13.546Z",
+    "type": "info",
+    "message": "Queued download: Aisi Fruit Home Videos Par Millions Views Aate Hain🔥",
+    "details": "Format: MP4, Quality: 240p"
+  }
+]

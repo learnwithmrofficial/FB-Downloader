@@ -238,8 +238,10 @@ export async function analyzeUrl(url: string): Promise<MediaInfo> {
         playlistItemCount: cleanUrl.includes('playlist') || cleanUrl.includes('list=') ? 12 : undefined,
       };
     }
-  } catch (err) {
-    console.warn('[yt-dlp analyzer] Direct extraction fallback:', err);
+  } catch (err: any) {
+    const errorMsg = err?.message || String(err);
+    const firstLine = errorMsg.split('\n')[0];
+    console.log('[yt-dlp analyzer] Extraction note:', firstLine);
   }
 
   // 2. Fallback: OpenGraph scraping & structured Facebook response

@@ -22,7 +22,12 @@ export function ensureYtDlpInstalled(): string {
 }
 
 export function getYtDlpDefaultArgs(): string[] {
-  const args = ['--no-colors', '--no-warnings'];
+  const args = [
+    '--no-colors',
+    '--no-warnings',
+    '--extractor-args',
+    'youtube:player_client=android,mweb,web',
+  ];
   
   // Node js runtime if node exists
   if (fs.existsSync('/usr/local/bin/node')) {

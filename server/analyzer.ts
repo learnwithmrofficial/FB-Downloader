@@ -5,6 +5,9 @@ import { ensureYtDlpInstalled, getYtDlpDefaultArgs } from './ytDlp.js';
 
 export function detectPlatform(url: string): PlatformType {
   const lower = url.toLowerCase();
+  if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'youtube';
+  if (lower.includes('instagram.com')) return 'instagram';
+  if (lower.includes('tiktok.com')) return 'tiktok';
   if (lower.includes('facebook.com/reel') || lower.includes('fb.watch/reel')) return 'reels';
   if (lower.includes('facebook.com/watch') || lower.includes('fb.watch')) return 'watch';
   if (lower.includes('facebook.com') || lower.includes('fb.gg') || lower.includes('m.facebook.com')) return 'facebook';
@@ -228,7 +231,7 @@ export async function analyzeUrl(url: string): Promise<MediaInfo> {
         duration,
         durationFormatted,
         thumbnail: thumbnail || 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop',
-        platform,
+        platform: extractYouTubeId(cleanUrl) ? 'youtube' : platform,
         availableResolutions,
         fileSizeEstimates,
         defaultResolution,
@@ -315,12 +318,30 @@ async function fallbackAnalyze(cleanUrl: string, platform: PlatformType): Promis
   let thumbnail = '';
   const ytId = extractYouTubeId(cleanUrl);
 
-  if (ytId) {
-    thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+  if (ytId || platform === 'youtube') {
+    try {
+      const oembedRes = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(cleanUrl)}&format=json`);
+      if (oembedRes.ok) {
+        const oembed = await oembedRes.json();
+        if (oembed.title) title = oembed.title;
+        if (oembed.author_name) uploader = oembed.author_name;
+        if (ytId) {
+          thumbnail = `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`;
+        } else if (oembed.thumbnail_url) {
+          thumbnail = oembed.thumbnail_url;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    if (!thumbnail && ytId) {
+      thumbnail = `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`;
+    }
   }
 
   // 1. Try Facebook OpenGraph metadata scraping
-  if (platform === 'facebook' || platform === 'reels' || platform === 'watch') {
+  if ((platform === 'facebook' || platform === 'reels' || platform === 'watch') && !title) {
     try {
       const meta = await scrapeFbMeta(cleanUrl);
       if (meta) {
@@ -334,15 +355,25 @@ async function fallbackAnalyze(cleanUrl: string, platform: PlatformType): Promis
   }
 
   if (!title) {
-    const fbIdMatch = cleanUrl.match(/(?:reel|reels|videos|watch|posts)\/([0-9]+)/i);
-    const fbId = fbIdMatch ? fbIdMatch[1] : Math.abs(hashString(cleanUrl)).toString(16);
-    if (platform === 'reels') title = `Facebook Reel Video (${fbId})`;
-    else if (platform === 'watch') title = `Facebook Watch Video (${fbId})`;
-    else title = `Facebook Video Post (${fbId})`;
+    if (ytId) {
+      title = `YouTube Video [${ytId}]`;
+      uploader = 'YouTube Channel';
+    } else {
+      const fbIdMatch = cleanUrl.match(/(?:reel|reels|videos|watch|posts)\/([0-9]+)/i);
+      const fbId = fbIdMatch ? fbIdMatch[1] : Math.abs(hashString(cleanUrl)).toString(16);
+      if (platform === 'reels') title = `Facebook Reel Video (${fbId})`;
+      else if (platform === 'watch') title = `Facebook Watch Video (${fbId})`;
+      else title = `Facebook Video Post (${fbId})`;
+      uploader = 'Facebook Creator';
+    }
   }
 
-  if (!uploader) uploader = 'Facebook Creator';
-  if (!thumbnail) thumbnail = 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=800&auto=format&fit=crop';
+  if (!uploader) uploader = ytId ? 'YouTube Channel' : 'Facebook Creator';
+  if (!thumbnail) {
+    thumbnail = ytId
+      ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`
+      : 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=800&auto=format&fit=crop';
+  }
 
   const duration = 210;
   const durationFormatted = formatDuration(duration);
@@ -393,7 +424,7 @@ async function fallbackAnalyze(cleanUrl: string, platform: PlatformType): Promis
     duration,
     durationFormatted,
     thumbnail,
-    platform,
+    platform: ytId ? 'youtube' : platform,
     availableResolutions,
     fileSizeEstimates,
     defaultResolution: '1080p',

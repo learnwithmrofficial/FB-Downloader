@@ -12,7 +12,7 @@ import { AboutView } from './components/AboutView';
 import { LogsView } from './components/LogsView';
 import { ToastContainer } from './components/ToastContainer';
 import { StatusBar } from './components/StatusBar';
-import { createClientFacebookMediaInfo } from './lib/facebookExtractor';
+import { createClientFacebookMediaInfo, createClientFacebookMediaInfoAsync } from './lib/facebookExtractor';
 import {
   ActiveView,
   AppSettings,
@@ -132,28 +132,30 @@ export default function App() {
       if (contentType.includes('application/json')) {
         data = await res.json();
       } else {
-        // Not a JSON response (e.g. static hosting or Vercel 404 HTML)
         console.warn('API returned non-JSON response, using client Facebook analyzer.');
-        const fallback = createClientFacebookMediaInfo(url);
+        const fallback = await createClientFacebookMediaInfoAsync(url);
         showToast('info', 'Facebook Media Analyzed', `${fallback.platform.toUpperCase()} detected.`);
         return fallback;
       }
 
       if (!res.ok) {
         console.warn('API returned error status, using client Facebook fallback:', data?.error);
-        const fallback = createClientFacebookMediaInfo(url);
+        const fallback = await createClientFacebookMediaInfoAsync(url);
         showToast('info', 'Facebook Media Analyzed', `${fallback.platform.toUpperCase()} detected.`);
         return fallback;
       }
 
-      showToast('info', 'Facebook Video Analyzed', `${data.platform ? data.platform.toUpperCase() : 'FACEBOOK'} media detected.`);
-      return data as MediaInfo;
+      if (data && data.title) {
+        showToast('info', 'Facebook Video Analyzed', `${data.platform ? data.platform.toUpperCase() : 'FACEBOOK'} media detected.`);
+        return data as MediaInfo;
+      }
     } catch (err: any) {
       console.warn('Network or server error during analyze, using client extractor:', err);
-      const fallback = createClientFacebookMediaInfo(url);
-      showToast('info', 'Facebook Media Analyzed', `${fallback.platform.toUpperCase()} detected.`);
-      return fallback;
     }
+
+    const fallback = await createClientFacebookMediaInfoAsync(url);
+    showToast('info', 'Facebook Media Analyzed', `${fallback.platform.toUpperCase()} detected.`);
+    return fallback;
   };
 
   const analyzePlaylist = async (url: string): Promise<PlaylistInfo | null> => {
@@ -165,60 +167,38 @@ export default function App() {
       });
 
       const contentType = res.headers.get('content-type') || '';
-      let data: any = {};
       if (contentType.includes('application/json')) {
-        data = await res.json();
-      } else {
-        console.warn('Playlist API non-JSON, using client FB collection fallback');
-        const items: PlaylistItem[] = Array.from({ length: 5 }, (_, i) => ({
-          id: `fb_item_${i + 1}`,
-          title: `Facebook Collection Video #${i + 1}`,
-          uploader: 'Facebook Page',
-          durationFormatted: '3:00',
-          thumbnail: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop',
-          selected: true,
-          estimatedSizeMB: 25,
-          url: url,
-        }));
-        const collectionInfo: PlaylistInfo = {
-          title: 'Facebook Series Collection',
-          uploader: 'Facebook Page',
-          platform: 'facebook',
-          totalVideos: 5,
-          estimatedTotalSizeMB: 125,
-          items,
-        };
-        showToast('info', 'Facebook Collection Parsed', 'Loaded 5 Facebook videos.');
-        return collectionInfo;
+        const data = await res.json();
+        if (res.ok && data.items) {
+          showToast('info', 'Collection Parsed', `Found ${data.totalVideos} videos in collection.`);
+          return data as PlaylistInfo;
+        }
       }
-
-      if (!res.ok) {
-        throw new Error(data?.error || 'Playlist analysis request failed');
-      }
-      showToast('info', 'Collection Parsed', `Found ${data.totalVideos} videos in collection.`);
-      return data as PlaylistInfo;
     } catch (err: any) {
-      const items: PlaylistItem[] = Array.from({ length: 5 }, (_, i) => ({
-        id: `fb_item_${i + 1}`,
-        title: `Facebook Collection Video #${i + 1}`,
-        uploader: 'Facebook Page',
-        durationFormatted: '3:00',
-        thumbnail: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop',
-        selected: true,
-        estimatedSizeMB: 25,
-        url: url,
-      }));
-      const collectionInfo: PlaylistInfo = {
-        title: 'Facebook Series Collection',
-        uploader: 'Facebook Page',
-        platform: 'facebook',
-        totalVideos: 5,
-        estimatedTotalSizeMB: 125,
-        items,
-      };
-      showToast('info', 'Facebook Collection Parsed', 'Loaded 5 Facebook videos.');
-      return collectionInfo;
+      // ignore
     }
+
+    const single = await createClientFacebookMediaInfoAsync(url);
+    const item: PlaylistItem = {
+      id: single.id,
+      title: single.title,
+      uploader: single.uploader,
+      durationFormatted: single.durationFormatted,
+      thumbnail: single.thumbnail,
+      selected: true,
+      estimatedSizeMB: single.fileSizeEstimates['1080p'] || 35,
+      url: single.url,
+    };
+    const collectionInfo: PlaylistInfo = {
+      title: single.title,
+      uploader: single.uploader,
+      platform: single.platform,
+      totalVideos: 1,
+      estimatedTotalSizeMB: single.fileSizeEstimates['1080p'] || 35,
+      items: [item],
+    };
+    showToast('info', 'Facebook Media Parsed', 'Loaded video for batch download.');
+    return collectionInfo;
   };
 
   const startDownload = async (

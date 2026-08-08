@@ -99,3 +99,61 @@ export function createClientFacebookMediaInfo(rawUrl: string): MediaInfo {
     isPlaylist: false
   };
 }
+
+export async function createClientFacebookMediaInfoAsync(rawUrl: string): Promise<MediaInfo> {
+  const base = createClientFacebookMediaInfo(rawUrl);
+  try {
+    const targetUrl = encodeURIComponent(
+      rawUrl
+        .trim()
+        .replace('web.facebook.com', 'www.facebook.com')
+        .replace('m.facebook.com', 'www.facebook.com')
+    );
+    const proxyUrl = `https://api.allorigins.win/raw?url=${targetUrl}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const html = await res.text();
+      const ogTitleMatch = html.match(/<meta property="og:title" content="([^"]+)"/i);
+      const ogImageMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
+
+      if (ogTitleMatch && ogTitleMatch[1]) {
+        let rawTitle = ogTitleMatch[1]
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#039;/g, "'")
+          .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+          .replace(/&#([0-9]+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+          .trim();
+
+        if (rawTitle) {
+          const parts = rawTitle.split('|').map((p) => p.trim());
+          if (parts.length >= 2) {
+            if (/views|reactions|likes|comments/i.test(parts[0])) {
+              parts.shift();
+            }
+            if (parts.length > 1) {
+              base.uploader = parts.pop()!;
+            }
+            base.title = parts.join(' - ');
+          } else {
+            base.title = rawTitle;
+          }
+        }
+      }
+
+      if (ogImageMatch && ogImageMatch[1]) {
+        base.thumbnail = ogImageMatch[1].replace(/&amp;/g, '&').trim();
+      }
+    }
+  } catch (e) {
+    // Keep base metadata extracted deterministically from URL
+  }
+  return base;
+}
+

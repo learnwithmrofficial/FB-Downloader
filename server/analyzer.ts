@@ -242,8 +242,69 @@ export async function analyzeUrl(url: string): Promise<MediaInfo> {
     console.warn('[yt-dlp analyzer] Direct extraction fallback:', err);
   }
 
-  // 2. Fallback: oEmbed / HTML parsing & generic structured Facebook response
+  // 2. Fallback: OpenGraph scraping & structured Facebook response
   return fallbackAnalyze(cleanUrl, platform);
+}
+
+async function scrapeFbMeta(cleanUrl: string) {
+  try {
+    const targetUrl = cleanUrl
+      .replace('web.facebook.com', 'www.facebook.com')
+      .replace('m.facebook.com', 'www.facebook.com')
+      .replace('fb.watch', 'www.facebook.com/watch');
+
+    const res = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+        'Accept-Language': 'en-US,en;q=0.9'
+      }
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+
+    const ogTitleMatch = html.match(/<meta property="og:title" content="([^"]+)"/i);
+    const ogImageMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
+    const ogDescMatch = html.match(/<meta property="og:description" content="([^"]+)"/i);
+
+    let ogTitle = ogTitleMatch ? ogTitleMatch[1] : '';
+    let ogImage = ogImageMatch ? ogImageMatch[1] : '';
+    let ogDesc = ogDescMatch ? ogDescMatch[1] : '';
+
+    const decode = (str: string) => str
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+      .replace(/&#([0-9]+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)));
+
+    ogTitle = decode(ogTitle).trim();
+    ogImage = decode(ogImage).trim();
+    ogDesc = decode(ogDesc).trim();
+
+    let title = '';
+    let uploader = 'Facebook Video Creator';
+
+    if (ogTitle) {
+      const parts = ogTitle.split('|').map(p => p.trim());
+      if (parts.length >= 2) {
+        if (/views|reactions|likes|comments/i.test(parts[0])) {
+          parts.shift();
+        }
+        if (parts.length > 1) {
+          uploader = parts.pop()!;
+        }
+        title = parts.join(' - ');
+      } else {
+        title = ogTitle;
+      }
+    }
+
+    return { title, uploader, thumbnail: ogImage, description: ogDesc };
+  } catch (e) {
+    return null;
+  }
 }
 
 async function fallbackAnalyze(cleanUrl: string, platform: PlatformType): Promise<MediaInfo> {
@@ -256,31 +317,30 @@ async function fallbackAnalyze(cleanUrl: string, platform: PlatformType): Promis
     thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
   }
 
-  try {
-    if (platform === 'facebook' || platform === 'reels' || platform === 'watch') {
-      try {
-        const res = await fetch(`https://www.facebook.com/plugins/video/oembed.json?url=${encodeURIComponent(cleanUrl)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.title) title = data.title;
-          if (data.author_name) uploader = data.author_name;
-        }
-      } catch (e) {
-        // Ignore oembed error
+  // 1. Try Facebook OpenGraph metadata scraping
+  if (platform === 'facebook' || platform === 'reels' || platform === 'watch') {
+    try {
+      const meta = await scrapeFbMeta(cleanUrl);
+      if (meta) {
+        if (meta.title) title = meta.title;
+        if (meta.uploader) uploader = meta.uploader;
+        if (meta.thumbnail) thumbnail = meta.thumbnail;
       }
+    } catch (e) {
+      // ignore
     }
-  } catch (e) {
-    // Ignore fallback fetch error
   }
 
   if (!title) {
-    if (platform === 'reels') title = `Facebook Reel Media (${Math.abs(hashString(cleanUrl)).toString(16)})`;
-    else if (platform === 'watch') title = `Facebook Watch Stream (${Math.abs(hashString(cleanUrl)).toString(16)})`;
-    else title = `Facebook Video Post (${Math.abs(hashString(cleanUrl)).toString(16)})`;
+    const fbIdMatch = cleanUrl.match(/(?:reel|reels|videos|watch|posts)\/([0-9]+)/i);
+    const fbId = fbIdMatch ? fbIdMatch[1] : Math.abs(hashString(cleanUrl)).toString(16);
+    if (platform === 'reels') title = `Facebook Reel Video (${fbId})`;
+    else if (platform === 'watch') title = `Facebook Watch Video (${fbId})`;
+    else title = `Facebook Video Post (${fbId})`;
   }
 
   if (!uploader) uploader = 'Facebook Creator';
-  if (!thumbnail) thumbnail = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop';
+  if (!thumbnail) thumbnail = 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=800&auto=format&fit=crop';
 
   const duration = 210;
   const durationFormatted = formatDuration(duration);

@@ -78,7 +78,7 @@ export function createClientFacebookMediaInfo(rawUrl: string): MediaInfo {
     uploader: 'Facebook Video Creator',
     duration: 180,
     durationFormatted: '3:00',
-    thumbnail: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop',
+    thumbnail: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=800&auto=format&fit=crop',
     platform: platform,
     availableResolutions: ['1080p', '720p', '480p', '360p', 'Audio'],
     fileSizeEstimates: {

@@ -125,7 +125,19 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
-      const data = await res.json();
+      
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = {};
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        if (!res.ok) {
+          throw new Error(`Server returned status ${res.status}: ${text.substring(0, 100)}...`);
+        }
+        throw new Error('Invalid response format from server');
+      }
+
       if (!res.ok) {
         throw new Error(data?.error || 'Analysis request failed');
       }
@@ -144,7 +156,19 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
-      const data = await res.json();
+
+      const contentType = res.headers.get('content-type') || '';
+      let data: any = {};
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        if (!res.ok) {
+          throw new Error(`Server status ${res.status}: ${text.substring(0, 80)}...`);
+        }
+        throw new Error('Invalid response format from server');
+      }
+
       if (!res.ok) {
         throw new Error(data?.error || 'Playlist analysis request failed');
       }

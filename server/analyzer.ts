@@ -242,7 +242,7 @@ export async function analyzeUrl(url: string): Promise<MediaInfo> {
     console.warn('[yt-dlp analyzer] Direct extraction fallback:', err);
   }
 
-  // 2. Fallback: oEmbed / HTML parsing
+  // 2. Fallback: oEmbed / HTML parsing & generic structured Facebook response
   return fallbackAnalyze(cleanUrl, platform);
 }
 
@@ -257,13 +257,16 @@ async function fallbackAnalyze(cleanUrl: string, platform: PlatformType): Promis
   }
 
   try {
-    if (platform === 'youtube' || platform === 'shorts') {
-      const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(cleanUrl)}&format=json`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.title) title = data.title;
-        if (data.author_name) uploader = data.author_name;
-        if (data.thumbnail_url) thumbnail = data.thumbnail_url;
+    if (platform === 'facebook' || platform === 'reels' || platform === 'watch') {
+      try {
+        const res = await fetch(`https://www.facebook.com/plugins/video/oembed.json?url=${encodeURIComponent(cleanUrl)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.title) title = data.title;
+          if (data.author_name) uploader = data.author_name;
+        }
+      } catch (e) {
+        // Ignore oembed error
       }
     }
   } catch (e) {
@@ -271,11 +274,12 @@ async function fallbackAnalyze(cleanUrl: string, platform: PlatformType): Promis
   }
 
   if (!title) {
-    if (ytId) title = `YouTube Media (${ytId})`;
-    else title = `${platform.toUpperCase()} Media Stream`;
+    if (platform === 'reels') title = `Facebook Reel Media (${Math.abs(hashString(cleanUrl)).toString(16)})`;
+    else if (platform === 'watch') title = `Facebook Watch Stream (${Math.abs(hashString(cleanUrl)).toString(16)})`;
+    else title = `Facebook Video Post (${Math.abs(hashString(cleanUrl)).toString(16)})`;
   }
 
-  if (!uploader) uploader = 'Media Creator';
+  if (!uploader) uploader = 'Facebook Creator';
   if (!thumbnail) thumbnail = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=800&auto=format&fit=crop';
 
   const duration = 210;

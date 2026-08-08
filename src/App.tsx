@@ -125,12 +125,14 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
-      if (!res.ok) throw new Error('Analysis request failed');
-      const data: MediaInfo = await res.json();
-      showToast('info', 'URL Analyzed Successfully', `${data.platform.toUpperCase()} media detected.`);
-      return data;
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || 'Analysis request failed');
+      }
+      showToast('info', 'URL Analyzed Successfully', `${data.platform ? data.platform.toUpperCase() : 'FACEBOOK'} media detected.`);
+      return data as MediaInfo;
     } catch (err: any) {
-      showToast('error', 'Analysis Failed', err.message || 'Unable to parse URL');
+      showToast('error', 'Analysis Failed', err.message || 'Unable to parse Facebook URL');
       return null;
     }
   };
@@ -142,12 +144,14 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
-      if (!res.ok) throw new Error('Playlist analysis request failed');
-      const data: PlaylistInfo = await res.json();
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || 'Playlist analysis request failed');
+      }
       showToast('info', 'Playlist Parsed', `Found ${data.totalVideos} videos in collection.`);
-      return data;
+      return data as PlaylistInfo;
     } catch (err: any) {
-      showToast('error', 'Playlist Error', err.message || 'Unable to parse playlist');
+      showToast('error', 'Playlist Error', err.message || 'Unable to parse Facebook collection');
       return null;
     }
   };

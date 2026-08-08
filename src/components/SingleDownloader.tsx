@@ -103,11 +103,11 @@ export const SingleDownloader: React.FC<SingleDownloaderProps> = ({
     }
   };
 
-  const triggerChromeDownload = (title: string, format: string, url: string, id?: string) => {
-    const downloadUrl = `/api/file/download?title=${encodeURIComponent(title)}&format=${encodeURIComponent(format)}&url=${encodeURIComponent(url)}&id=${id || ''}`;
+  const triggerChromeDownload = (title: string, format: string, url: string, resolution: string = '1080p', id?: string) => {
+    const downloadUrl = `/api/file/download?title=${encodeURIComponent(title)}&format=${encodeURIComponent(format)}&resolution=${encodeURIComponent(resolution)}&url=${encodeURIComponent(url)}&id=${id || ''}`;
     const a = document.createElement('a');
     a.href = downloadUrl;
-    a.download = `${title}.${format.toLowerCase()}`;
+    a.download = `${title} [${resolution}].${format.toLowerCase()}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -473,11 +473,11 @@ export const SingleDownloader: React.FC<SingleDownloaderProps> = ({
                 </button>
 
                 <button
-                  onClick={() => triggerChromeDownload(mediaInfo.title, selectedFormat, mediaInfo.url)}
+                  onClick={() => triggerChromeDownload(mediaInfo.title, selectedFormat, mediaInfo.url, selectedResolution)}
                   className="h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-400/30"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  <span>Download in Chrome Browser</span>
+                  <span>Download in Browser ({selectedResolution})</span>
                 </button>
               </div>
 
@@ -557,6 +557,7 @@ export const SingleDownloader: React.FC<SingleDownloaderProps> = ({
                     currentActiveItem.title,
                     currentActiveItem.format,
                     currentActiveItem.url,
+                    currentActiveItem.resolution,
                     currentActiveItem.id
                   )
                 }

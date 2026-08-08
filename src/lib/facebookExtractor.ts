@@ -13,7 +13,12 @@ export function extractFacebookVideoId(url: string): string {
   } catch (e) {
     // ignore
   }
-  return Math.floor(100000000000 + Math.random() * 900000000000).toString();
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = (hash << 5) - hash + url.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash).toString();
 }
 
 export function createClientFacebookMediaInfo(rawUrl: string): MediaInfo {
